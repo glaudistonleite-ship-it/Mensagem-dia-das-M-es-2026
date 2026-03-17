@@ -37,7 +37,7 @@ export const generateCaricature = async (base64Image: string, mimeType: string) 
           },
         },
         {
-          text: "Transforme esta pessoa em uma caricatura artística, colorida e alegre para o Dia das Mães. Mantenha as características principais mas dê um toque de desenho animado elegante e festivo. IMPORTANTE: Se houver qualquer texto escrito na imagem (como 'Feliz Dia das Mães'), ele DEVE estar obrigatoriamente em português.",
+          text: "Crie uma versão artística e estilizada desta pessoa para o Dia das Mães. A imagem deve ser altamente fiel aos traços reais do rosto, mantendo a semelhança física evidente, mas com um acabamento de pintura digital vibrante, elegante e festivo. Não exagere nas proporções como em caricaturas tradicionais; foque em um retrato artístico que celebre a beleza da pessoa. IMPORTANTE: Qualquer texto na imagem deve estar em português (ex: 'Feliz Dia das Mães').",
         },
       ],
     },

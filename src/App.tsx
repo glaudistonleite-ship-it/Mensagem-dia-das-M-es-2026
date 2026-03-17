@@ -48,13 +48,11 @@ export default function App() {
         await navigator.share({
           title: 'Mensagem de Dia das Mães',
           text: text,
-          url: window.location.href,
         });
       } catch (err) {
         console.error('Erro ao compartilhar:', err);
       }
     } else {
-      // Fallback: Copy to clipboard
       try {
         await navigator.clipboard.writeText(text);
         if (isCustom) {
@@ -183,20 +181,21 @@ export default function App() {
                   {PRESET_MESSAGES.map((msg, i) => (
                     <motion.div 
                       key={i}
-                      whileHover={{ scale: 1.02 }}
-                      onClick={() => handleShare(msg, i)}
-                      className="bg-white p-8 rounded-2xl shadow-sm border border-[#f5e1da] relative overflow-hidden group cursor-pointer"
+                      whileHover={{ y: -4 }}
+                      className="bg-white p-8 rounded-2xl shadow-sm border border-[#f5e1da] relative overflow-hidden flex flex-col justify-between"
                     >
-                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity flex gap-2">
-                        {copiedIndex === i ? (
-                          <Check size={20} className="text-green-500" />
-                        ) : (
-                          <Share2 size={20} className="text-[#8b5e5e]" />
-                        )}
-                      </div>
-                      <p className="serif text-xl italic text-[#6d4c4c] leading-relaxed">"{msg}"</p>
-                      <div className="mt-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-[10px] uppercase tracking-widest text-[#a67c7c] font-bold">Clique para compartilhar</span>
+                      <p className="serif text-xl italic text-[#6d4c4c] leading-relaxed mb-6">"{msg}"</p>
+                      <div className="flex justify-end">
+                        <button 
+                          onClick={() => handleShare(msg, i)}
+                          className="flex items-center gap-2 text-[#8b5e5e] hover:text-[#7a5252] font-medium text-sm transition-colors"
+                        >
+                          {copiedIndex === i ? (
+                            <><Check size={18} /> Copiado!</>
+                          ) : (
+                            <><Share2 size={18} /> Compartilhar</>
+                          )}
+                        </button>
                       </div>
                     </motion.div>
                   ))}
@@ -220,19 +219,20 @@ export default function App() {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    onClick={() => handleShare(customMessage, undefined, true)}
-                    className="mt-8 bg-white p-8 rounded-2xl shadow-md border-2 border-[#8b5e5e]/10 cursor-pointer group relative overflow-hidden"
+                    className="mt-8 bg-white p-8 rounded-2xl shadow-md border-2 border-[#8b5e5e]/10 relative overflow-hidden"
                   >
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
-                      {customCopied ? (
-                        <Check size={24} className="text-green-500" />
-                      ) : (
-                        <Share2 size={24} className="text-[#8b5e5e]" />
-                      )}
-                    </div>
-                    <p className="serif text-2xl italic text-[#4a3a3a]">{customMessage}</p>
-                    <div className="mt-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-[10px] uppercase tracking-widest text-[#a67c7c] font-bold">Clique para compartilhar</span>
+                    <p className="serif text-2xl italic text-[#4a3a3a] mb-6">{customMessage}</p>
+                    <div className="flex justify-center">
+                      <button 
+                        onClick={() => handleShare(customMessage, undefined, true)}
+                        className="flex items-center gap-2 bg-[#8b5e5e] text-white px-6 py-2 rounded-full hover:bg-[#7a5252] transition-colors font-medium"
+                      >
+                        {customCopied ? (
+                          <><Check size={20} /> Copiado!</>
+                        ) : (
+                          <><Share2 size={20} /> Compartilhar Mensagem</>
+                        )}
+                      </button>
                     </div>
                   </motion.div>
                 )}
