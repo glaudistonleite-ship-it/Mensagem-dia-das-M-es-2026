@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Camera, Send, Sparkles, Image as ImageIcon, Loader2, Download, RefreshCw } from 'lucide-react';
+import { Heart, Camera, Send, Sparkles, Image as ImageIcon, Loader2, Download, RefreshCw, Share2, Copy, Check } from 'lucide-react';
 import { generateMessage, generateCaricature } from './services/gemini';
 
 const PRESET_MESSAGES = [
@@ -38,15 +38,62 @@ export default function App() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [caricatureResult, setCaricatureResult] = useState<string | null>(null);
   const [isGeneratingCaricature, setIsGeneratingCaricature] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [customCopied, setCustomCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleShare = async (text: string, index?: number, isCustom?: boolean) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Mensagem de Dia das Mães',
+          text: text,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error('Erro ao compartilhar:', err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(text);
+        if (isCustom) {
+          setCustomCopied(true);
+          setTimeout(() => setCustomCopied(false), 2000);
+        } else if (index !== undefined) {
+          setCopiedIndex(index);
+          setTimeout(() => setCopiedIndex(null), 2000);
+        }
+      } catch (err) {
+        console.error('Erro ao copiar:', err);
+      }
+    }
+  };
 
   const handleGenerateCustomMessage = async () => {
     setIsGeneratingMessage(true);
+    
+    // Fallback messages in case of API failure
+    const fallbacks = [
+      "Mãe, seu amor é o presente mais bonito que a vida me deu. Te amo!",
+      "Para a rainha do meu coração: um Feliz Dia das Mães cheio de luz!",
+      "Obrigado por ser meu exemplo de força e ternura. Você é única!",
+      "Mãe, você é a prova de que anjos existem. Feliz seu dia!"
+    ];
+    const randomFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+
+    // Create a timeout to prevent infinite loading
+    const timeout = new Promise<string>((_, reject) => 
+      setTimeout(() => reject(new Error("Timeout")), 12000)
+    );
+
     try {
-      const msg = await generateMessage("Crie uma mensagem curta e emocionante de Dia das Mães.");
-      setCustomMessage(msg || '');
+      const generatePromise = generateMessage("Crie uma mensagem curta e emocionante de Dia das Mães.");
+      const msg = await Promise.race([generatePromise, timeout]);
+      setCustomMessage(msg || randomFallback);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao gerar mensagem:", error);
+      setCustomMessage(randomFallback);
     } finally {
       setIsGeneratingMessage(false);
     }
@@ -137,12 +184,20 @@ export default function App() {
                     <motion.div 
                       key={i}
                       whileHover={{ scale: 1.02 }}
-                      className="bg-white p-8 rounded-2xl shadow-sm border border-[#f5e1da] relative overflow-hidden group"
+                      onClick={() => handleShare(msg, i)}
+                      className="bg-white p-8 rounded-2xl shadow-sm border border-[#f5e1da] relative overflow-hidden group cursor-pointer"
                     >
-                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Heart size={48} className="text-[#8b5e5e]" />
+                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity flex gap-2">
+                        {copiedIndex === i ? (
+                          <Check size={20} className="text-green-500" />
+                        ) : (
+                          <Share2 size={20} className="text-[#8b5e5e]" />
+                        )}
                       </div>
                       <p className="serif text-xl italic text-[#6d4c4c] leading-relaxed">"{msg}"</p>
+                      <div className="mt-4 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[10px] uppercase tracking-widest text-[#a67c7c] font-bold">Clique para compartilhar</span>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -165,9 +220,20 @@ export default function App() {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="mt-8 bg-white p-8 rounded-2xl shadow-md border-2 border-[#8b5e5e]/10"
+                    onClick={() => handleShare(customMessage, undefined, true)}
+                    className="mt-8 bg-white p-8 rounded-2xl shadow-md border-2 border-[#8b5e5e]/10 cursor-pointer group relative overflow-hidden"
                   >
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
+                      {customCopied ? (
+                        <Check size={24} className="text-green-500" />
+                      ) : (
+                        <Share2 size={24} className="text-[#8b5e5e]" />
+                      )}
+                    </div>
                     <p className="serif text-2xl italic text-[#4a3a3a]">{customMessage}</p>
+                    <div className="mt-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[10px] uppercase tracking-widest text-[#a67c7c] font-bold">Clique para compartilhar</span>
+                    </div>
                   </motion.div>
                 )}
               </section>

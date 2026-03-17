@@ -2,44 +2,27 @@ import { GoogleGenAI } from "@google/genai";
 
 export const generateMessage = async (prompt: string) => {
   const apiKey = process.env.GEMINI_API_KEY || "";
+  
   if (!apiKey) {
-    console.error("GEMINI_API_KEY não encontrada.");
-    return "Mãe, você é o meu maior tesouro. Feliz Dia das Mães!";
+    throw new Error("API Key not found");
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  
-  // Timeout de 15 segundos para evitar que o botão fique travado em "carregando"
-  const timeoutPromise = new Promise<null>((_, reject) =>
-    setTimeout(() => reject(new Error("Timeout ao gerar mensagem")), 15000)
-  );
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: [{ parts: [{ text: prompt }] }],
+    config: {
+      systemInstruction: "Você é um assistente carinhoso. Crie uma mensagem curta de Dia das Mães em português.",
+    },
+  });
 
-  try {
-    const generatePromise = ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
-        systemInstruction: "Você é um assistente poético e carinhoso especializado em mensagens de Dia das Mães. Crie mensagens emocionantes, curtas e bonitas em português.",
-      },
-    });
-
-    const response = await Promise.race([generatePromise, timeoutPromise]) as any;
-    
-    if (!response || !response.text) {
-      throw new Error("Resposta vazia da IA");
-    }
-    
-    return response.text;
-  } catch (error) {
-    console.error("Erro ao gerar mensagem:", error);
-    return "Mãe, seu amor é a luz que ilumina meu caminho. Te amo muito! (Mensagem gerada automaticamente)";
-  }
+  return response.text;
 };
 
 export const generateCaricature = async (base64Image: string, mimeType: string) => {
   const apiKey = process.env.GEMINI_API_KEY || "";
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY não encontrada.");
+    throw new Error("API Key not found");
   }
   
   const ai = new GoogleGenAI({ apiKey });
